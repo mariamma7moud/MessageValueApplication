@@ -24,7 +24,7 @@ class _WriteState extends State<Write> {
   final _formKey = GlobalKey<FormState>();
   late String text;
   late int id;
-  static int countID=0;
+  static int countID=6;
   TextEditingController messageController = TextEditingController();
 
   @override
@@ -61,9 +61,9 @@ class _WriteState extends State<Write> {
 
   Future addMessage() async {
     final message = SingleMessage(
-        id: countID, text: messageController.text
+        id: ++countID, text: messageController.text
     );
     await MessagesDataBase.instance.createMessage(message);
-    print('message added to db');
+
   }
 }

@@ -1,168 +1,122 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:localstorage/localstorage.dart';
 import 'package:messages_value/message.dart';
 import 'package:messages_value/messageDB.dart';
-import 'package:messages_value/myApp.dart';
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 class View extends StatefulWidget {
-
   @override
   _ViewState createState() => _ViewState();
 }
 
 class _ViewState extends State<View> {
   late List<SingleMessage> messages;
-  bool isLoading = false;
+  bool isLoading= false;
+  bool _isLoggedIn = true;
+  String subtitle='';
 
-  void initState(){
+  void initState() {
     super.initState();
     refreshMessages();
   }
-  
-  void dispose(){
-    MessagesDataBase.instance.close();
-    super.dispose();
-  }
-  
-  Future refreshMessages() async{
+
+
+  // void dispose() {
+  //   MessagesDataBase.instance.close();
+  //   super.dispose();
+  // }
+
+  Future refreshMessages() async {
     setState(() => isLoading = true);
     this.messages = await MessagesDataBase.instance.readAllMessages();
-    setState(()=> isLoading = false);
+    setState(() => isLoading = false);
+  }
+
+  String encode(String? message){
+    assert(message != null);
+    return base64.encode(utf8.encode(message!));
+  }
+
+  String decode(String encoded){
+    return utf8.decode(base64.decode(encoded));
+  }
+
+  void setIsLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    final password = prefs.get('password');
+    _isLoggedIn =  (password!= null);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        isLoading
-          ? CircularProgressIndicator()
-          : messages.isEmpty
-          ? Text(
-        'No Notes',
-        style: TextStyle(color: Colors.white, fontSize: 24),
-      )
-          : buildMessages(),
 
-        FloatingActionButton(
-          backgroundColor: Colors.black,
-          child: Icon(Icons.add),
-          onPressed: () async {
-            //await Navigator.of(context).push(
-              //MaterialPageRoute(builder: (context) => AddEditNotePage()),
-            //);
-            refreshMessages();
-          },
-        ),
-      ]
-    );
-  }
+      return SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            isLoading
+              ? CircularProgressIndicator()
+              : messages.isEmpty
+              ? Text(
+            'No Notes',
+            style: TextStyle(color: Colors.white, fontSize: 24),
+          )
+              : buildMessages(),
 
-  Widget buildMessages(){
-    return ListView.builder(
-      padding: EdgeInsets.all(12),
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final message = messages[index];
-        return ListTile(
-            leading: Icon(Icons.message),
-            title: Text('$index message'),
-            subtitle: Text('${message.text}'),
-            trailing: IconButton(
+            IconButton(
               icon: Icon(Icons.vpn_key),
-              onPressed: () {
+              onPressed: () async{
+                setIsLoggedIn();
                 setState(() {
-                  // if( loggedin ){
-                  //   setState(() {
-                  //     _messageSubtitleText= decrypt( _messageSubtitleText);
-                  //   });
-                  //
-                  // }else{
-                  Scaffold.of(context).showSnackBar(
-                    SnackBar(
-                      duration: Duration(seconds: 2),
-                      content: Text('Private: you are not logged in.'),
-                    ),
-                  );
-                  // }
-                  //if logged in
-                  //Replace encrypted String
-
-                  //if not logged in
-                  //show error message
-                });
+                  if (_isLoggedIn) {
+                    setState(() {
+                      subtitle = decode(subtitle);
+                    });
+                    print('logged in');
+                  } else {
+                    Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        duration: Duration(seconds: 2),
+                        content: Text('Private: you are not logged in.'),
+                      ),
+                    );
+                  }
+                }
+                );
               },
-            )
-        );
-      },
-    );
+            ),
+
+            FloatingActionButton(
+              backgroundColor: Colors.black,
+              child: Icon(Icons.refresh),
+              onPressed: () async {
+                refreshMessages();
+              },
+            ),
+          ]
+        ),
+      );
+    }
+
+    Widget buildMessages(){
+      return ListView.builder(
+        scrollDirection: Axis.vertical,
+        shrinkWrap: true,
+        padding: EdgeInsets.all(12),
+        itemCount: messages.length,
+        itemBuilder: (context, index) {
+          final message = messages[index];
+          subtitle = encode(message.text);
+          return ListTile(
+              leading: Icon(Icons.message),
+              title: Text('Message $index '),
+              subtitle: Text(subtitle),
+          );
+        },
+      );
   }
 
 
-  
-
-  // static int countID=0;
-  // bool loggedin = true;
-  // String _messageSubtitleText = 'place here the message the user sent but decrypted!';
-  //
-  //
-  // //create and add message
-  // _addMessage(String text) {
-  //   setState(() {
-  //     final messageItem = new SingleMessage(text: text, id:++countID );
-  //     list.messageList.add(messageItem);
-  //     _saveToStorage();
-  //   });
-  // }
-  //
-  // _saveToStorage() {
-  //   storage.setItem('message', list.toJSONEncodable());
-  // }
-  //
-  // String decrypt( String s){
-  //   String decrypted = 'this is the decrypted message ';
-  //   //do decryption here
-  //   return decrypted;
-  // }
-  //
-  // @override
-  // Widget build(BuildContext context) {
-  //   return ListView.separated(
-  //     itemCount: 10, //add here messageList.length
-  //     itemBuilder: (context, index) {
-  //       return ListTile(
-  //         leading: Icon(Icons.message),
-  //         trailing: IconButton(
-  //           icon: Icon(Icons.vpn_key),
-  //           onPressed: (){
-  //             setState(() {
-  //               if( loggedin ){
-  //                 setState(() {
-  //                   _messageSubtitleText= decrypt( _messageSubtitleText);
-  //                 });
-  //
-  //               }else{
-  //                 Scaffold.of(context).showSnackBar(
-  //                   SnackBar(
-  //                     duration: Duration(seconds: 2),
-  //                     content: Text('Private: you are not logged in.'),
-  //                   ),
-  //                 );
-  //               }
-  //               //if logged in
-  //               //Replace encrypted String
-  //
-  //               //if not logged in
-  //               //show error message
-  //             });
-  //           },
-  //         ),
-  //         title: Text('$index message'),
-  //         subtitle: Text(_messageSubtitleText),
-  //       );
-  //     },
-  //     separatorBuilder: (context, index) {
-  //       return Divider();
-  //     },
-  //   );
-  // }
 }

@@ -32,7 +32,7 @@ class MessagesDataBase{
 
   //create database tables
   Future _createDB(Database db, int version) async{
-    final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT'; //could also just write directly
+    final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT'; //could also just write directly  AUTOINCREMENT
   print('DB created');
     await db.execute('''
     CREATE TABLE $tableMessages (
@@ -67,6 +67,7 @@ class MessagesDataBase{
     } else {
       throw Exception('ID $id not found');
     }
+
   }
 
   Future<List<SingleMessage>> readAllMessages() async{
@@ -75,10 +76,10 @@ class MessagesDataBase{
     return result.map((json) => SingleMessage.fromJson(json)).toList();
   }
   //close DB
-  Future close() async{
-    final db = await instance.database;
-    db!.close();
-  }
+  // Future close() async{
+  //   final db = await instance.database;
+  //   db!.close();
+  // }
 
 
 

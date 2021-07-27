@@ -47,11 +47,11 @@ class _MyAppState extends State<MyApp> {
           iconSize: 50,
           items: const<BottomNavigationBarItem>[
             BottomNavigationBarItem(
-                icon: Icon(Icons.note),
+                icon: Icon(Icons.message),
                 label: 'Send Message'
             ),
             BottomNavigationBarItem(
-                icon: Icon(Icons.done),
+                icon: Icon(Icons.person),
                 label: 'Home'
             ),
             BottomNavigationBarItem(
